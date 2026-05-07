@@ -60,4 +60,3 @@ python manage.py runserver
 
 ## Vídeo de apresentação
 
-[Assista ao vídeo](https://youtu.be/6jTXTw3t7yI?si=NqT87WdZngvS67uj)
