@@ -1,0 +1,265 @@
+{% extends 'caixa/base.html' %}
+{% load static %}
+
+{% block titulo %}Seleção{% endblock %}
+
+{% block estilos %}
+<style>
+  .scene {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4vw;
+  }
+
+  .fundo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    transition: background-color 0.4s ease;
+  }
+
+  .area-central {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2vh;
+  }
+
+  .nome-topo {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: 5rem;
+    color: #E25F44;
+    letter-spacing: -0.07em;
+    transition: opacity 0.3s ease;
+    user-select: none;
+    text-shadow:
+      -8px -8px 0 #FBE7D6,  8px -8px 0 #FBE7D6,
+      -8px  8px 0 #FBE7D6,  8px  8px 0 #FBE7D6,
+       0px -8px 0 #FBE7D6,  0px  8px 0 #FBE7D6,
+      -8px  0px 0 #FBE7D6,  8px  0px 0 #FBE7D6;
+  }
+
+  .nome-topo.saindo { opacity: 0; }
+
+  .navegacao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3vw;
+  }
+
+  .btn-lateral {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: min(10vw, 90px);
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+
+  .btn-lateral img { width: 100%; display: block; }
+  .btn-lateral:hover  { transform: scale(1.12); }
+  .btn-lateral:active { transform: scale(0.92); }
+
+  .produto-wrapper {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .produto-wrapper.saindo {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  .indicador {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .ponto {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    border: 2px solid rgba(255,255,255,0.7);
+    transition: background 0.3s;
+    cursor: pointer;
+  }
+
+  .ponto.ativo { background: white; }
+
+  .painel-lateral {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5vh;
+  }
+
+  .total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+  }
+
+  .total-label {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(1rem, 2.5vw, 2rem);
+    color: #A34B17;
+    opacity: 0.7;
+    letter-spacing: -0.03em;
+  }
+
+  .total-valor {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    color: #A34B17;
+    letter-spacing: -0.05em;
+    text-shadow:
+      -6px -6px 0 #FBE7D6,  6px -6px 0 #FBE7D6,
+      -6px  6px 0 #FBE7D6,  6px  6px 0 #FBE7D6,
+       0px -6px 0 #FBE7D6,  0px  6px 0 #FBE7D6,
+      -6px  0px 0 #FBE7D6,  6px  0px 0 #FBE7D6;
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="scene">
+
+  <div id="fundo" class="fundo"></div>
+
+  <div class="area-central">
+
+    <span class="nome-topo" style="font-size: 3rem; color: brown;">Escolha seus produtos</span>
+    <span id="nome-topo" class="nome-topo">—</span>
+
+    <div class="navegacao">
+
+      <button class="btn-lateral" onclick="trocarProduto(-1)" aria-label="Anterior">
+        <img src="{% static 'caixa/img/btn-retornar.svg' %}" alt="Anterior"/>
+      </button>
+
+      <div class="produto-wrapper" id="produto-wrapper">
+        {% include 'caixa/components/produto_card.html' %}
+      </div>
+
+      <button class="btn-lateral" onclick="trocarProduto(1)" aria-label="Próximo">
+        <img src="{% static 'caixa/img/btn-avancar.svg' %}" alt="Próximo"/>
+      </button>
+
+    </div>
+
+    <div class="indicador" id="indicador"></div>
+
+  </div>
+
+  <div class="painel-lateral">
+    <div class="total">
+      <span class="total-label">total</span>
+      <span class="total-valor" id="total-valor">R$ 0,00</span>
+    </div>
+    {% include 'caixa/components/btn_play.html' with texto="PAGAR" onclick="irParaPagamento()" %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const STATIC = "{% static '' %}";
+
+  // não precisa!! isso vai vir do banco
+  const produtos = [
+    { nome: "Morango", imagem: "caixa/img/morango.png", preco: "R$ 3,50",  preco_num: 3.50,  cor: "#FFE1C9" },
+    { nome: "Leite",   imagem: "caixa/img/leite.png",   preco: "R$ 5,00",  preco_num: 5.00,  cor: "#FFFEDB" },
+    { nome: "Milho",   imagem: "caixa/img/milho.png",   preco: "R$ 8,00",  preco_num: 8.00,  cor: "#FFE9D5" },
+    { nome: "Batata",  imagem: "caixa/img/batata.png",  preco: "R$ 45,90", preco_num: 45.90, cor: "#FFF2E5" },
+    { nome: "Kiwi",    imagem: "caixa/img/kiwi.png",    preco: "R$ 7,00",  preco_num: 7.00,  cor: "#FFDDDD" },
+  ];
+  //
+
+  let atual = 0;
+  const quantidades = new Array(produtos.length).fill(0);
+
+  // precisa de cor de fundo, nome-topo, produto-img e produto-preco para o produto
+  const elFundo    = document.getElementById('fundo');
+  const elNome     = document.getElementById('nome-topo');
+  const elWrapper  = document.getElementById('produto-wrapper');
+  const elImg      = document.getElementById('produto-img');
+  const elPreco    = document.getElementById('produto-preco');
+  const elContador = document.getElementById('contador-valor');
+  const elTotal    = document.getElementById('total-valor');
+  const elIndicador = document.getElementById('indicador');
+
+  produtos.forEach((_, i) => {
+    const p = document.createElement('div');
+    p.classList.add('ponto');
+    if (i === 0) p.classList.add('ativo');
+    p.onclick = () => irPara(i);
+    elIndicador.appendChild(p);
+  });
+
+  function atualizarPontos() {
+    document.querySelectorAll('.ponto').forEach((p, i) =>
+      p.classList.toggle('ativo', i === atual)
+    );
+  }
+
+  function aplicarProduto() {
+    const p = produtos[atual];
+    elFundo.style.backgroundColor = p.cor;
+    elNome.textContent         = p.nome;
+    elImg.src                  = STATIC + p.imagem;
+    elImg.alt                  = p.nome;
+    elPreco.textContent        = p.preco;
+    elContador.textContent     = quantidades[atual];
+    atualizarPontos();
+  }
+
+  function irPara(indice) {
+    if (indice === atual) return;
+    elNome.classList.add('saindo');
+    elWrapper.classList.add('saindo');
+    setTimeout(() => {
+      atual = indice;
+      aplicarProduto();
+      elNome.classList.remove('saindo');
+      elWrapper.classList.remove('saindo');
+    }, 300);
+  }
+
+  function trocarProduto(direcao) {
+    irPara((atual + direcao + produtos.length) % produtos.length);
+  }
+
+  function alterarQtd(delta) {
+    quantidades[atual] = Math.max(0, quantidades[atual] + delta);
+    elContador.textContent = quantidades[atual];
+    atualizarTotal();
+  }
+
+  function atualizarTotal() {
+    const soma = produtos.reduce((acc, p, i) => acc + p.preco_num * quantidades[i], 0);
+    elTotal.textContent = "R$ " + soma.toFixed(2).replace('.', ',');
+  }
+
+  function irParaPagamento() {
+    if (!quantidades.some(q => q > 0)) return;
+    window.location.href = "{% url 'pagamento' %}";
+  }
+
+  aplicarProduto();
+</script>
+{% endblock %}

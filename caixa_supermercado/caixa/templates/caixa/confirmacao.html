@@ -1,0 +1,63 @@
+{% extends 'caixa/base.html' %}
+{% load static %}
+
+{% block titulo %}Confirmação{% endblock %}
+
+{% block estilos %}
+<style>
+  .scene {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 3vw;
+    padding: 2vh 3vw;
+    box-sizing: border-box;
+    background-color: #FBE7D6;
+  }
+
+  .area-central {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5vh;
+    height: stretch;
+    justify-content: center;
+    padding-inline: 5vw;
+  }
+
+  .titulo {
+    font-size: 4rem;
+    color: #A34B17;
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+
+<div class="scene">
+
+    <div class="area-central">
+
+        <h1 class="titulo">RECEBA SEU TROCO</h1>
+
+        <!-- colocar aqui as cedulas escolhidas pelo algoritmo -->
+
+        {% include 'caixa/components/btn_play.html' with texto="VOLTAR PARA O INICIO" onclick="voltarParaInicio()" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function voltarParaInicio() {
+    const audio = new Audio("{% static 'caixa/track/sucesso.mp3' %}");
+    audio.play();
+    audio.onended = () => window.location.href = '/';
+  }
+</script>
+{% endblock %}

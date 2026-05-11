@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="{% static 'caixa/img/logo.png' %}">
+  <title>SuperMarket | {% block titulo %}{% endblock %}</title>
+
+  <style>
+    @font-face {
+      font-family: "Tasty Matcha";
+      src: url("{% static 'caixa/fonts/tasty-matcha.regular.ttf' %}") format("truetype");
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: "Tasty Matcha", sans-serif;
+    }
+    
+
+    .btn-canto {
+      position: fixed;
+      z-index: 100;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      width: min(8vw, 80px);
+      transition: transform 0.15s ease;
+    }
+
+    .btn-canto img { width: 100%; display: block; }
+    .btn-canto:hover  { transform: scale(1.1); }
+    .btn-canto:active { transform: scale(0.92); }
+
+    .btn-canto-topo-esquerda { top: 1.5rem; left: 1.5rem; }
+    .btn-canto-topo-direita  { top: 1.5rem; right: 1.5rem; }
+    .btn-canto-baixo-esquerda { bottom: 1.5rem; left: 1.5rem; }
+    .btn-canto-baixo-direita  { bottom: 1.5rem; right: 1.5rem; }
+
+    
+  </style>
+
+  {% block estilos %}{% endblock %}
+</head>
+<body>
+
+    <button class="btn-canto btn-canto-topo-esquerda" onclick="window.location.href='{% url 'home' %}'" aria-label="Início">
+        <img src="{% static 'caixa/img/btn-home.svg' %}" alt="Início"/>
+    </button>
+
+    <button class="btn-canto btn-canto-topo-direita" onclick="toggleSom()" aria-label="Som">
+        <img src="{% static 'caixa/img/btn-som.svg' %}" alt="Som"/>
+    </button>
+
+    <audio id="audio-musica" loop>
+        <source src="{% static 'caixa/track/music.mp3' %}" type="audio/mpeg"/>
+    </audio>
+    <audio id="audio-hover">
+        <source src="{% static 'caixa/track/hover.mp3' %}" type="audio/mpeg"/>
+    </audio>
+    <audio id="audio-click">
+        <source src="{% static 'caixa/track/clique-seco.mp3' %}" type="audio/mpeg"/>
+    </audio>
+
+  {% block conteudo %}{% endblock %}
+
+  {% block scripts %}{% endblock %}
+    <script>
+    let somAtivo = true;
+
+    const musica   = document.getElementById('audio-musica');
+    const sfxHover = document.getElementById('audio-hover');
+    const sfxClick = document.getElementById('audio-click');
+    const btnSom   = document.querySelector('.btn-canto-topo-direita img');
+
+    window.addEventListener('beforeunload', () => {
+    localStorage.setItem('musicaTempo', musica.currentTime);
+    localStorage.setItem('somAtivo', somAtivo);
+    });
+
+    function iniciarMusica() {
+    const tempoSalvo = parseFloat(localStorage.getItem('musicaTempo')) || 0;
+    const somSalvo   = localStorage.getItem('somAtivo');
+
+    if (somSalvo === 'false') {
+        somAtivo = false;
+        musica.muted   = true;
+        sfxHover.muted = true;
+        sfxClick.muted = true;
+        btnSom.src = "{% static 'caixa/img/btn-som-mudo.svg' %}";
+    }
+
+    musica.currentTime = tempoSalvo;
+
+    musica.play().catch(() => {
+        document.addEventListener('click', () => {
+        if (somAtivo) musica.play();
+        }, { once: true });
+    });
+    }
+
+    document.addEventListener('DOMContentLoaded', iniciarMusica);
+
+    function toggleSom() {
+      somAtivo = !somAtivo;
+
+      musica.muted   = !somAtivo;
+      sfxHover.muted = !somAtivo;
+      sfxClick.muted = !somAtivo;
+
+      btnSom.src = somAtivo
+        ? "{% static 'caixa/img/btn-som.svg' %}"
+        : "{% static 'caixa/img/btn-som-mudo.svg' %}";
+    }
+
+    function playHover() {
+      if (!somAtivo) return;
+      sfxHover.currentTime = 0;
+      sfxHover.play();
+    }
+
+    function playClick() {
+      if (!somAtivo) return;
+      sfxClick.currentTime = 0;
+      sfxClick.play();
+    }
+
+    function aplicarSomBotoes() {
+      document.querySelectorAll('button, [data-som]').forEach(el => {
+        if (el.dataset.somAplicado) return;
+        el.addEventListener('mouseenter', playHover);
+        el.addEventListener('click', playClick);
+        el.dataset.somAplicado = 'true';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', aplicarSomBotoes);
+
+    const observer = new MutationObserver(aplicarSomBotoes);
+    observer.observe(document.body, { childList: true, subtree: true });
+  </script>
+
+</body>
+</html>
+

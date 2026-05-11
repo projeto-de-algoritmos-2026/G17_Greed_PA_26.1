@@ -1,0 +1,160 @@
+{% extends 'caixa/base.html' %}
+{% load static %}
+
+{% block titulo %}Início{% endblock %}
+
+{% block estilos %}
+<style>
+
+.btn-canto.btn-canto-topo-esquerda{
+  display: none;
+}
+
+.scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fundo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    .center{
+      display: flex;
+      z-index: 10;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      justify-content: space-between;
+      padding-block: 2%;
+    }
+
+    .titulo {
+      /* position: relative; */
+      /* z-index: 10; */
+      width: min(55vw, 480px);
+      animation: titulo-flutua 2.5s ease-in-out infinite;
+    }
+
+    .btn-play {
+      /* position: relative;
+      z-index: 10; */
+      width: min(16vw, 140px);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 2vh;
+      animation: play-pulsa 1.8s ease-in-out infinite;
+      transition: transform 0.1s ease;
+    }
+
+    .btn-play img {
+      width: 100%;
+      display: block;
+    }
+
+    .btn-play:hover  { transform: scale(1.1); }
+    .btn-play:active { transform: scale(0.93); }
+
+    .arvore-esquerda {
+    /* z-index: 11; */
+    position: absolute;
+    bottom: 15%;
+    left: -12vw;
+    z-index: 11;
+    /* width: min(22vw, 20%); */
+    transform-origin: bottom center;
+    animation: balanca-esquerda 4s ease-in-out infinite;
+    }
+
+    .arvore-direita {
+      position: absolute;
+      bottom: -2vw;
+      right: -12vw;
+      z-index: 4;
+      /* width: min(22vw, 190px); */
+      transform-origin: bottom center;
+      animation: balanca-direita 3.6s ease-in-out infinite;
+      z-index: 12;
+    }
+
+    @keyframes titulo-flutua {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    @keyframes play-pulsa {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.06); }
+    }
+
+    @keyframes balanca-esquerda {
+      0%, 100% { transform: rotate(0deg); }
+      50%       { transform: rotate(2deg); }
+    }
+
+    @keyframes balanca-direita {
+      0%, 100% { transform: rotate(0deg); }
+      50%       { transform: rotate(-2deg); }
+    }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="scene">
+
+  <img
+    class="fundo"
+    src="{% static 'caixa/img/fundo.svg' %}"
+    alt=""
+    aria-hidden="true"
+  />
+
+  <img
+    class="arvore-esquerda"
+    src="{% static 'caixa/img/arvore-esquerda.svg' %}"
+    alt=""
+    aria-hidden="true"
+  />
+
+  <img
+    class="arvore-direita"
+    src="{% static 'caixa/img/arvore-direita.svg' %}"
+    alt=""
+    aria-hidden="true"
+  />
+
+  <div class="center">
+    <img
+      class="titulo"
+      src="{% static 'caixa/img/titulo.svg' %}"
+      alt="SuperMarket"
+    />
+
+    <button
+      class="btn-play"
+      onclick="window.location.href='{% url 'selecao' %}'"
+      aria-label="Jogar"
+    >
+      <img
+      src="{% static 'caixa/img/botao-play.svg' %}"
+      alt="Play"
+      />
+    </button>
+</div>
+
+</div>
+{% endblock %}

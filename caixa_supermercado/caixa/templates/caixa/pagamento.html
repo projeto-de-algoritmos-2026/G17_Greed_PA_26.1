@@ -1,0 +1,394 @@
+{% extends 'caixa/base.html' %}
+{% load static %}
+
+{% block titulo %}Pagamento{% endblock %}
+
+{% block estilos %}
+<style>
+  .scene {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 3vw;
+    padding: 2vh 3vw;
+    box-sizing: border-box;
+    background-color: #FBE7D6;
+  }
+
+  .area-central {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5vh;
+    height: stretch;
+    justify-content: center;
+    padding-inline: 5vw;
+  }
+
+  .titulo-pagamento {
+    font-size: 4rem;
+    color: #A34B17;
+  }
+
+  .grade-dinheiro {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    column-gap: 7vh;
+    row-gap: 2vh;
+    width: 100%;
+    height: 60vh;
+    z-index: 1;
+  }
+
+  .grade-linha {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5vw;
+  }
+
+  .denom-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .denom-img-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .denom-img-wrap.moeda {
+    width: clamp(60px, 8vw, 100px);
+    height: clamp(60px, 8vw, 100px);
+  }
+
+  .denom-img-wrap.cedula {
+    width: clamp(90px, 12vw, 160px);
+    height: clamp(54px, 7.2vw, 96px);
+  }
+
+  .denom-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.15s ease, filter 0.15s ease;
+  }
+
+  .denom-img-wrap img:hover {
+    transform: translateY(-3px) scale(1.04);
+    filter: drop-shadow(0 8px 14px rgba(163,75,23,0.35));
+  }
+
+  .contador-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .contador-row .btn-play-custom {
+    padding: 6px 10px;
+  }
+
+  .contador-row .btn-play-inner {
+    padding-inline: 10px;
+    padding-block: 4px;
+  }
+
+  .contador-row .btn-play-texto {
+    font-size: clamp(1rem, 2vw, 1.6rem);
+  }
+
+  .qtd-valor {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(1rem, 2vw, 1.8rem);
+    color: #A34B17;
+    min-width: 2ch;
+    text-align: center;
+    text-shadow:
+      -2px -2px 0 #FBE7D6,  2px -2px 0 #FBE7D6,
+      -2px  2px 0 #FBE7D6,  2px  2px 0 #FBE7D6;
+  }
+
+  .selecionado-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .selecionado-label {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(1rem, 2vw, 1.8rem);
+    color: #A34B17;
+    opacity: 0.7;
+    letter-spacing: -0.02em;
+  }
+
+  .selecionado-valor {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    color: #E25F44;
+    letter-spacing: -0.04em;
+    text-shadow:
+      -4px -4px 0 #FBE7D6,  4px -4px 0 #FBE7D6,
+      -4px  4px 0 #FBE7D6,  4px  4px 0 #FBE7D6;
+    transition: color 0.3s ease;
+  }
+
+  .selecionado-valor.suficiente {
+    color: #4caf50;
+  }
+
+  .painel-lateral {
+    position: absolute;
+    top: 0;
+    right: 3%;
+    bottom: -70%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5vh;
+    min-width: 180px;
+  }
+
+  .total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .total-label {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(1rem, 2.5vw, 2rem);
+    color: #A34B17;
+    opacity: 0.7;
+    letter-spacing: -0.03em;
+  }
+
+  .total-valor {
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    color: #A34B17;
+    letter-spacing: -0.05em;
+    text-shadow:
+      -6px -6px 0 #FBE7D6,  6px -6px 0 #FBE7D6,
+      -6px  6px 0 #FBE7D6,  6px  6px 0 #FBE7D6,
+       0px -6px 0 #FBE7D6,  0px  6px 0 #FBE7D6,
+      -6px  0px 0 #FBE7D6,  6px  0px 0 #FBE7D6;
+  }
+
+  .btn-pagar-wrap {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn-pagar-wrap.desabilitado {
+    opacity: 0.45;
+    pointer-events: none;
+    filter: grayscale(30%);
+  }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+
+<div class="scene">
+
+  <div class="area-central">
+
+    <h1 class="titulo-pagamento">Escolha como sera seu pagamento</h1>
+
+    <div class="grade-dinheiro">
+
+    <!-- aqui são as moedas e cedulas de 5centavos a 200 reais. acho que dá para trazer do banco essas cédulas -->
+
+        <div class="denom-card">
+            <div class="denom-img-wrap moeda"><img src="{% static 'caixa/img/moeda_5c.png' %}" alt="5 centavos"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(0,-1)" %}
+            <span class="qtd-valor" id="qtd-0">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(0,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap moeda"><img src="{% static 'caixa/img/moeda_10c.png' %}" alt="10 centavos"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(1,-1)" %}
+            <span class="qtd-valor" id="qtd-1">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(1,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap moeda"><img src="{% static 'caixa/img/moeda_25c.png' %}" alt="25 centavos"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(2,-1)" %}
+            <span class="qtd-valor" id="qtd-2">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(2,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap moeda"><img src="{% static 'caixa/img/moeda_50c.png' %}" alt="50 centavos"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(3,-1)" %}
+            <span class="qtd-valor" id="qtd-3">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(3,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap moeda"><img src="{% static 'caixa/img/moeda_1r.png' %}" alt="1 real"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(4,-1)" %}
+            <span class="qtd-valor" id="qtd-4">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(4,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap cedula"><img src="{% static 'caixa/img/cedula_5r.png' %}" alt="5 reais"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(5,-1)" %}
+            <span class="qtd-valor" id="qtd-5">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(5,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap cedula"><img src="{% static 'caixa/img/cedula_10r.png' %}" alt="10 reais"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(6,-1)" %}
+            <span class="qtd-valor" id="qtd-6">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(6,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap cedula"><img src="{% static 'caixa/img/cedula_20r.png' %}" alt="20 reais"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(7,-1)" %}
+            <span class="qtd-valor" id="qtd-7">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(7,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap cedula"><img src="{% static 'caixa/img/cedula_50r.png' %}" alt="50 reais"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(8,-1)" %}
+            <span class="qtd-valor" id="qtd-8">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(8,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap cedula"><img src="{% static 'caixa/img/cedula_100r.png' %}" alt="100 reais"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(9,-1)" %}
+            <span class="qtd-valor" id="qtd-9">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(9,1)" %}
+            </div>
+        </div>
+
+        <div class="denom-card">
+            <div class="denom-img-wrap cedula"><img src="{% static 'caixa/img/cedula_200r.png' %}" alt="200 reais"/></div>
+            <div class="contador-row">
+            {% include 'caixa/components/btn_play.html' with texto="—" onclick="alterar(10,-1)" %}
+            <span class="qtd-valor" id="qtd-10">0</span>
+            {% include 'caixa/components/btn_play.html' with texto="+" onclick="alterar(10,1)" %}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="selecionado-area">
+      <span class="selecionado-label">Pago</span>
+      <!-- valor deve ser personalizado de acordo com o valor da compra -> valor vindo da tela anterior -->
+      <span class="selecionado-valor" id="selecionado-valor">R$ 0,00</span>
+    </div>
+
+  </div>
+
+  <div class="painel-lateral">
+    <div class="total">
+      <span class="total-label">total</span>
+      <span class="total-valor" id="total-valor">R$ 0,00</span>
+    </div>
+
+    <div class="btn-pagar-wrap desabilitado" id="btn-pagar-wrap">
+      {% include 'caixa/components/btn_play.html' with texto="RECEBER TROCO" onclick="irParaConfirmacao()" %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const denominacoes = [
+    { valor: 0.05 },
+    { valor: 0.10 },
+    { valor: 0.25 },
+    { valor: 0.50 },
+    { valor: 1.00 },
+    { valor: 5    },
+    { valor: 10   },
+    { valor: 20   },
+    { valor: 50   },
+    { valor: 100  },
+    { valor: 200  },
+  ];
+
+  const totalCompra = parseFloat("{{ total_compra|default:'80.00' }}") || 80.00;
+  const quantidades = new Array(denominacoes.length).fill(0);
+
+  const elTotal       = document.getElementById('total-valor');
+  const elSelecionado = document.getElementById('selecionado-valor');
+  const elBtnWrap     = document.getElementById('btn-pagar-wrap');
+
+  function fmt(val) {
+    return "R$ " + val.toFixed(2).replace('.', ',');
+  }
+
+  function somaPago() {
+    return denominacoes.reduce((acc, d, i) => acc + d.valor * quantidades[i], 0);
+  }
+
+  elTotal.textContent       = fmt(totalCompra);
+  elSelecionado.textContent = fmt(0);
+
+  function alterar(idx, delta) {
+    quantidades[idx] = Math.max(0, quantidades[idx] + delta);
+    document.getElementById(`qtd-${idx}`).textContent = quantidades[idx];
+    atualizar();
+  }
+
+  function atualizar() {
+    const pago = somaPago();
+
+    elSelecionado.textContent = fmt(pago);
+    elSelecionado.classList.toggle('suficiente', pago >= totalCompra);
+
+    elBtnWrap.classList.toggle('desabilitado', pago < totalCompra);
+  }
+
+  function irParaConfirmacao() {
+    if (somaPago() < totalCompra) return;
+    window.location.href = "{% url 'confirmacao' %}";
+  }
+</script>
+{% endblock %}
