@@ -41,10 +41,13 @@
   }
 
   .troco-lista{
-    display:flex;
-    flex-direction:column;
-    gap:2vh;
-    margin-top:3vh;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2vh;
+    margin-top: 3vh;
+    justify-content: center;
   }
 
   .troco-item{
@@ -100,7 +103,7 @@
         <p class="troco-valor">Valor pago: R$ {{ pago|floatformat:2 }}</p>
         <p class="troco-valor"><strong>Troco: R$ {{ troco|floatformat:2 }}</strong></p>
 
-        <div>
+        <div style="width: 100%; display: flex;">
           <div class="troco-lista">
 
             {% for item in troco_itens %}
