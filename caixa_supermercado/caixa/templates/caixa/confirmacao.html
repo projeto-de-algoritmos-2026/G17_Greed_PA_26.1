@@ -5,9 +5,14 @@
 
 {% block estilos %}
 <style>
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+
   .scene {
     position: relative;
-    width: 100vw;
+    /* width: 100vw; */
     min-height: 100vh;
     display: flex;
     flex-direction: row;
@@ -34,6 +39,52 @@
     font-size: 4rem;
     color: #A34B17;
   }
+
+  .troco-lista{
+    display:flex;
+    flex-direction:column;
+    gap:2vh;
+    margin-top:3vh;
+  }
+
+  .troco-item{
+    display:flex;
+    align-items:center;
+    gap:2vw;
+
+    background:white;
+    padding:1rem 2rem;
+    border-radius:20px;
+
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  }
+
+  .troco-img{
+    width:120px;
+    object-fit:contain;
+  }
+
+  .troco-info{
+    display:flex;
+    flex-direction:column;
+  }
+
+  .troco-qtd{
+    font-size:2rem;
+    color:#A34B17;
+  }
+
+  .troco-valor{
+    font-family: "Tasty Matcha", sans-serif;
+    font-size: clamp(1.5rem, 1.5vw, 1.5rem);
+    color: #A34B17;
+    letter-spacing: -0.05em;
+    text-shadow:
+      -6px -6px 0 #FBE7D6,  6px -6px 0 #FBE7D6,
+      -6px  6px 0 #FBE7D6,  6px  6px 0 #FBE7D6,
+       0px -6px 0 #FBE7D6,  0px  6px 0 #FBE7D6,
+      -6px  0px 0 #FBE7D6,  6px  0px 0 #FBE7D6;
+  }
 </style>
 {% endblock %}
 
@@ -45,7 +96,31 @@
 
         <h1 class="titulo">RECEBA SEU TROCO</h1>
 
-        <!-- colocar aqui as cedulas escolhidas pelo algoritmo -->
+        <p class="troco-valor">Total da compra: R$ {{ total_compra|floatformat:2 }}</p>
+        <p class="troco-valor">Valor pago: R$ {{ pago|floatformat:2 }}</p>
+        <p class="troco-valor"><strong>Troco: R$ {{ troco|floatformat:2 }}</strong></p>
+
+        <div>
+          <div class="troco-lista">
+
+            {% for item in troco_itens %}
+
+              <div class="troco-item">
+                <img src="{% static item.imagem %}" alt="Dinheiro" class="troco-img">
+                <div class="troco-info">
+                  <span class="troco-qtd">
+                    {{ item.qtd }}x
+                  </span>
+                  <span class="troco-valor">
+                    R$ {{ item.valor|floatformat:2 }}
+                  </span>
+                </div>
+              </div>
+
+            {% endfor %}
+
+          </div>
+        </div>
 
         {% include 'caixa/components/btn_play.html' with texto="VOLTAR PARA O INICIO" onclick="voltarParaInicio()" %}
     </div>

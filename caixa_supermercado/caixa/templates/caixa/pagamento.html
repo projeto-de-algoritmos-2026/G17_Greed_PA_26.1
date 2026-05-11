@@ -213,6 +213,7 @@
     <div class="grade-dinheiro">
 
     <!-- aqui são as moedas e cedulas de 5centavos a 200 reais. acho que dá para trazer do banco essas cédulas -->
+     <!-- realmente dava, mas daria muito trabalho kkkkkkk, deixei do jeito que tava mesmo <3 -->
 
         <div class="denom-card">
             <div class="denom-img-wrap moeda"><img src="{% static 'caixa/img/moeda_5c.png' %}" alt="5 centavos"/></div>
@@ -335,33 +336,42 @@
   </div>
 
 </div>
+
+<form id="form-confirmacao" method="post" action="{% url 'confirmacao' %}">
+  {% csrf_token %}
+  <input type="hidden" name="pago_json" id="pago_json">
+</form>
 {% endblock %}
 
 {% block scripts %}
 <script>
   const denominacoes = [
-    { valor: 0.05 },
-    { valor: 0.10 },
-    { valor: 0.25 },
-    { valor: 0.50 },
-    { valor: 1.00 },
-    { valor: 5    },
-    { valor: 10   },
-    { valor: 20   },
-    { valor: 50   },
-    { valor: 100  },
-    { valor: 200  },
-  ];
+    { valor: 5 },
+    { valor: 10 },
+    { valor: 25 },
+    { valor: 50 },
+    { valor: 100 },
+    { valor: 500 },
+    { valor: 1000 },
+    { valor: 2000 },
+    { valor: 5000 },
+    { valor: 10000 },
+    { valor: 20000 },
+];
 
-  const totalCompra = parseFloat("{{ total_compra|default:'80.00' }}") || 80.00;
+  const totalCompra = parseInt("{{ total_compra|default:'0' }}");
   const quantidades = new Array(denominacoes.length).fill(0);
 
   const elTotal       = document.getElementById('total-valor');
   const elSelecionado = document.getElementById('selecionado-valor');
   const elBtnWrap     = document.getElementById('btn-pagar-wrap');
 
-  function fmt(val) {
-    return "R$ " + val.toFixed(2).replace('.', ',');
+  function fmt(valorCentavos) {
+
+    return "R$ " +
+        (valorCentavos / 100)
+        .toFixed(2)
+        .replace('.', ',');
   }
 
   function somaPago() {
@@ -387,8 +397,28 @@
   }
 
   function irParaConfirmacao() {
+
     if (somaPago() < totalCompra) return;
-    window.location.href = "{% url 'confirmacao' %}";
+
+    const pago = [...denominacoes]
+      .reverse()
+      .map((d) => {
+
+        const idx = denominacoes.findIndex(
+          original => original.valor === d.valor
+        );
+
+        return {
+          valor: d.valor,
+          quantidade: quantidades[idx]
+        };
+      })
+      .filter(item => item.quantidade > 0);
+
+    document.getElementById('pago_json').value =
+      JSON.stringify(pago);
+
+    document.getElementById('form-confirmacao').submit();
   }
 </script>
 {% endblock %}

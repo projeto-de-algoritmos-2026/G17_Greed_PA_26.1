@@ -174,21 +174,21 @@
   </div>
 
 </div>
+
+<form id="form-selecao" method="post" action="{% url 'pagamento' %}">
+  {% csrf_token %}
+  <input type="hidden" name="carrinho_json" id="carrinho_json">
+</form>
+
 {% endblock %}
 
 {% block scripts %}
+
+{{ produtos_data|json_script:"produtos-data" }}
 <script>
   const STATIC = "{% static '' %}";
 
-  // não precisa!! isso vai vir do banco
-  const produtos = [
-    { nome: "Morango", imagem: "caixa/img/morango.png", preco: "R$ 3,50",  preco_num: 3.50,  cor: "#FFE1C9" },
-    { nome: "Leite",   imagem: "caixa/img/leite.png",   preco: "R$ 5,00",  preco_num: 5.00,  cor: "#FFFEDB" },
-    { nome: "Milho",   imagem: "caixa/img/milho.png",   preco: "R$ 8,00",  preco_num: 8.00,  cor: "#FFE9D5" },
-    { nome: "Batata",  imagem: "caixa/img/batata.png",  preco: "R$ 45,90", preco_num: 45.90, cor: "#FFF2E5" },
-    { nome: "Kiwi",    imagem: "caixa/img/kiwi.png",    preco: "R$ 7,00",  preco_num: 7.00,  cor: "#FFDDDD" },
-  ];
-  //
+  const produtos = JSON.parse(document.getElementById('produtos-data').textContent);
 
   let atual = 0;
   const quantidades = new Array(produtos.length).fill(0);
@@ -216,16 +216,35 @@
       p.classList.toggle('ativo', i === atual)
     );
   }
+  function formatarReal(valorCentavos) {
 
+      return "R$ " +
+          (valorCentavos / 100)
+          .toFixed(2)
+          .replace('.', ',');
+  }
   function aplicarProduto() {
-    const p = produtos[atual];
-    elFundo.style.backgroundColor = p.cor;
-    elNome.textContent         = p.nome;
-    elImg.src                  = STATIC + p.imagem;
-    elImg.alt                  = p.nome;
-    elPreco.textContent        = p.preco;
-    elContador.textContent     = quantidades[atual];
-    atualizarPontos();
+
+      const p = produtos[atual];
+
+      elFundo.style.backgroundColor = p.cor;
+
+      elNome.textContent = p.nome;
+
+      // imagem
+      elImg.src = p.imagem;
+
+      elImg.alt = p.nome;
+
+      // preço
+      elPreco.textContent =
+          formatarReal(p.preco_centavos);
+
+      // quantidade
+      elContador.textContent =
+          quantidades[atual];
+
+      atualizarPontos();
   }
 
   function irPara(indice) {
@@ -251,13 +270,29 @@
   }
 
   function atualizarTotal() {
-    const soma = produtos.reduce((acc, p, i) => acc + p.preco_num * quantidades[i], 0);
-    elTotal.textContent = "R$ " + soma.toFixed(2).replace('.', ',');
+    const soma = produtos.reduce(
+        (acc, p, i) =>
+            acc + p.preco_centavos * quantidades[i],
+        0
+    );
+
+    elTotal.textContent = formatarReal(soma);
   }
 
   function irParaPagamento() {
-    if (!quantidades.some(q => q > 0)) return;
-    window.location.href = "{% url 'pagamento' %}";
+    const carrinho = produtos
+      .map((p, i) => ({
+        id: p.id,
+        nome: p.nome,
+        preco_centavos: p.preco_centavos,
+        quantidade: quantidades[i]
+      }))
+      .filter(item => item.quantidade > 0);
+
+    if (!carrinho.length) return;
+
+    document.getElementById('carrinho_json').value = JSON.stringify(carrinho);
+    document.getElementById('form-selecao').submit();
   }
 
   aplicarProduto();
